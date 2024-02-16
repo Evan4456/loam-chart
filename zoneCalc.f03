@@ -7,7 +7,7 @@ module zoneCalc
     real, dimension(2) :: vertA = (/0.0, 0.0/)
     real, dimension(2) :: vertB = (/5.0, 10.0/)
     real, dimension(2) :: vertC = (/10.0, 0.0/)
-    real :: slopeAB = 2.0, slopeBC = -2.0, slopeCA = 0.0
+    real :: slopeSilt = 2.0, slopeSand = -2.0, slopeClay = 0.0
 
     type zone
         !            col, row
@@ -32,15 +32,17 @@ module zoneCalc
   
         z3%name = "sandy loam"
         allocate(z3%points(2,7))
-        z3%points = reshape((/(/0.75, 1.5/), (/1.0, 2.0/), (/3.0, 0.0/), (/3.75, 2.0/), (/4.375, 0.75/), (/5.0, 0.0/), (/5.375, 0.75/)/), shape(z3%points))
-
+        z3%points = reshape((/(/0.75, 1.5/), (/1.0, 2.0/), (/3.0, 0.0/), (/3.75, 2.0/), (/4.375, 0.75/), &
+                            (/5.0, 0.0/), (/5.375, 0.75/)/), shape(z3%points))
+               
         z4%name = "loam"
         allocate(z4%points(2,5))
         z4%points = reshape((/(/3.75, 2.0/), (/4.125, 2.75/), (/4.375, 0.75/), (/5.375, 0.75/), (/6.5, 3.0/)/), shape(z4%points))
-        
+
         z5%name = "silt loam"
-        allocate(z4%points(2,6))
-        z5%points = reshape((/(/5.0, 0.0/), (/6.5, 3.0/), (/8.0, 0.0/), (/8.625, 2.75/), (/9.375, 1.0/)/), shape(z5%points))
+        allocate(z5%points(2,6))
+        z5%points = reshape((/(/5.0, 0.0/), (/6.5, 2.75/), (/8.0, 0.0/), (/8.75, 1.5/), (/8.625, 2.75/), &
+                            (/9.375, 1.25/)/), shape(z5%points))
 
         z6%name = "silt"
         allocate(z6%points(2,4))
@@ -74,5 +76,24 @@ module zoneCalc
 
         quickhull = 0.0                          
     end function quickhull
+
+    subroutine intercept(clay, sand, interceptPoint)
+        real, intent(out) :: clay, sand
+        real, dimension(2), intent(out) :: interceptPoint
+        real :: clayTransform, sandTransform
+        real :: xIntercept, yIntercept
+
+
+        ! Clay - Line 1 | Sand - Line 2 !
+        clayTransform = clay / 10.0
+        sandTransform = 2 * (10 - (sand / 10.0))
+
+        ! Clay: 0 = y - height
+        ! Sand: 0 = -2x - y + distance
+        xIntercept = ((1.0 * sandTransform) - ((-1.0) * (-clayTransform))) / ((slopeClay * (-1.0)) - (slopeSand * 1.0))  ! FIX
+        yIntercept = ((slopeSand * (-clayTransform)) - (slopeClay * sandTransform)) / ((slopeClay * (-1.0)) - (slopeSand * 1.0))     !
+
+        interceptPoint = (/xIntercept, yIntercept/)
+    end subroutine
 
 end module

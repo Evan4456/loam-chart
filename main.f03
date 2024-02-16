@@ -2,15 +2,26 @@ program main
     use zoneCalc
     implicit none
 
-    ! Store multiple points in an array per object
-    ! Need three constants for main triangle vertices
-    ! Need constants for slopes
-
-    !Axis just a scale of 0-100%
-    ! take intercept point and run hull calc on nearest ranges
-    !-> hull calc, plus nearest point calc
+    real :: clay, sand
+    real, dimension(2) :: interceptPoint
 
 
+    write(*,*) "Clay (%) | Sand (%)"
+    read(*,*) clay, sand
 
     call assignZones()
+
+    ! Input clay and sand %
+    ! -> Get coords of intercept
+    call intercept(clay, sand, interceptPoint)
+    write(*,*) interceptPoint
+
+    ! -- Need working hull calc algo
+    ! --> Test on existing zones set up in zoneCalc
+    ! --> Run some tests confirming that it works
+
+    ! Find nearest points to intercept point
+    ! -> Run hull calc on zones containing those points to see if each of said zones
+    !    contains the intercept point
+    ! -> Return zone that intercept point is inside   
 end
