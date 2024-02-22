@@ -9,6 +9,7 @@ module zoneCalc
 
     ! ----------------------------------------------------------- !
     type(polygon) :: z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12
+    type(polygon), dimension(12) :: zoneList
     ! ----------------------------------------------------------- !
 
     contains
@@ -53,6 +54,8 @@ module zoneCalc
         write(*,*) z3%name
         write(*,*) z3%vertices
         write(*,*) z3%conns
+
+        zoneList = (/z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12/)
                
         ! z4%name = "loam"
         ! allocate(z4%points(2,5))
@@ -91,10 +94,6 @@ module zoneCalc
         ! allocate(z12%points(2,5))
         ! z12%points = reshape((/(/2.75, 5.5/), (/3.5, 4.0/), vertB, (/6.0, 4.0/), (/7.0, 6.0/)/), shape(z12%points))
     end subroutine
-    real function quickhull()
-
-        quickhull = 0.0                          
-    end function quickhull
 
     subroutine intercept(clay, sand, interceptPoint)
         real, intent(out) :: clay, sand
@@ -114,6 +113,66 @@ module zoneCalc
 
         interceptPoint = (/xIntercept, yIntercept/)
     end subroutine
+
+    subroutine getPotentialZones(interceptPoint, potentialZones)
+        type(point), intent(in) :: interceptPoint
+        integer, dimension(4), intent(inout) :: potentialZones
+        integer :: i, j, jMax, zoneCount
+        real :: a, b, c, cPrime, cMin, x, y
+        cMin = 30
+
+        do i = 1, 3 !12 -> size(zoneList)
+            jMax = size(zoneList(i)%vertices)
+            do j = 1, jMax
+                a = interceptPoint%x * interceptPoint%x
+                b = interceptPoint%y * interceptPoint%y
+                cPrime = sqrt(a + b)
+
+                a = zoneList(i)%vertices(j)%x * zoneList(i)%vertices(j)%x
+                b = zoneList(i)%vertices(j)%y * zoneList(i)%vertices(j)%y
+                c = sqrt(a + b)
+                cPrime = abs(cPrime - c)
+
+                ! Does not handle if a point is equi-distant
+                if (cPrime <= cMin) then
+                    cMin = cPrime
+                    x = zoneList(i)%vertices(j)%x
+                    y = zoneList(i)%vertices(j)%y
+                    write(*,*) "Point: ", x, y
+                end if
+            end do
+        end do
+        write(*,*) "Cmin: ", + cMin
+
+        zoneCount = 1
+        do i = 1, 3
+            jMax = size(zoneList(i)%vertices)
+            do j = 1, jMax
+                if (zoneList(i)%vertices(j)%x == x .and. zoneList(i)%vertices(j)%y == y) then
+                    potentialZones(zoneCount) = i
+                    zoneCount = zoneCount+1
+                    write(*,*) "Test: ", zoneList(i)%vertices(j)
+                end if
+            end do
+        end do
+    end subroutine
+
+    integer function cast(interceptPoint)
+        type(point), intent(inout) :: interceptPoint
+        integer :: i, j, jMax, closestPoint
+        integer, dimension(4) :: potentialZones
+
+        ! Get nearest point(s) and each zone with said point(s)
+        call getPotentialZones(interceptPoint, potentialZones)
+
+        
+        ! Draw line straight out right
+        ! Check if intersects with any line in currently iterated zone
+        ! If odd num of intersects then inside, if even then outside
+
+
+        cast = 0
+    end function cast
 
     subroutine cleanZones()
         deallocate(z1%vertices)
