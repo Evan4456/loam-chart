@@ -95,24 +95,15 @@ module zoneCalc
         ! z12%points = reshape((/(/2.75, 5.5/), (/3.5, 4.0/), vertB, (/6.0, 4.0/), (/7.0, 6.0/)/), shape(z12%points))
     end subroutine
 
-    subroutine intercept(clay, sand, interceptPoint)
-        real, intent(out) :: clay, sand
-        real, dimension(2), intent(out) :: interceptPoint
-        real :: clayTransform, sandTransform
-        real :: xIntercept, yIntercept
+    type(point) function getIntercept(a1, b1, c1, a2, b2, c2)
+        real, intent(in) :: a1, b1, c1, a2, b2, c2
+        type(point) :: intercept
 
+        intercept%x = ((b1 * c2) - (b2 * c1)) / ((a1 * b2) - (a2 * b1))
+        intercept%y = ((a2 * c1) - (a1 * c2)) / ((a1 * b2) - (a2 * b1))
 
-        ! Clay - Line 1 | Sand - Line 2 !
-        clayTransform = clay / 10.0
-        sandTransform = 2 * (10 - (sand / 10.0))
-
-        ! Clay: 0 = y - height
-        ! Sand: 0 = -2x - y + distance
-        xIntercept = ((1.0 * sandTransform) - ((-1.0) * (-clayTransform))) / ((slopeClay * (-1.0)) - (slopeSand * 1.0))
-        yIntercept = ((slopeSand * (-clayTransform)) - (slopeClay * sandTransform)) / ((slopeClay * (-1.0)) - (slopeSand * 1.0))
-
-        interceptPoint = (/xIntercept, yIntercept/)
-    end subroutine
+        getIntercept = intercept
+    end function getIntercept
 
     subroutine getPotentialZones(interceptPoint, potentialZones)
         type(point), intent(in) :: interceptPoint
@@ -160,13 +151,15 @@ module zoneCalc
     integer function cast(interceptPoint)
         type(point), intent(inout) :: interceptPoint
         integer :: i, j, jMax, closestPoint
-        integer, dimension(4) :: potentialZones
+        integer, dimension(4) :: potentialZones = 0
 
         ! Get nearest point(s) and each zone with said point(s)
         call getPotentialZones(interceptPoint, potentialZones)
-
         
-        ! Draw line straight out right
+        ! Draw line straight out right (newInterceptx must be >= interceptPointx)
+        ! 0 = -1 + y coord
+        ! getIntercept()
+
         ! Check if intersects with any line in currently iterated zone
         ! If odd num of intersects then inside, if even then outside
 
