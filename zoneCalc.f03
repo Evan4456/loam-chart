@@ -131,6 +131,7 @@ module zoneCalc
         do i = 1, size(zoneList)
             jMax = size(zoneList(i)%vertices)
             do j = 1, jMax
+            !FIX This math isn't getting closest point properly
                 a = interceptPoint%x * interceptPoint%x
                 b = interceptPoint%y * interceptPoint%y
                 cPrime = sqrt(a + b)
@@ -174,6 +175,7 @@ module zoneCalc
 
         ! Get nearest point(s) and each zone with said point(s)
         call getPotentialZones(interceptPoint, potentialZones)
+        write(*,*) potentialZones
         
         ! If there is a line connection in which one x value is to the right of intercept-x
         ! then the horizontal line will cross over
@@ -185,20 +187,23 @@ module zoneCalc
         ! Check conns by iterating once through point list
         ! Does not need to wrap as end->start is always parallel to ray
 
-        do i = 0, size(potentialZones)
+        do i=1, size(potentialZones)
             interceptCount = 0
             if (potentialZones(i) /= 0) then
                 currZone = zoneList(potentialZones(i))
                 jMax = size(currZone%vertices)
-                do j = 0, jMax
+                do j=1, jMax
                     if (currZone%vertices(j)%x >= interceptPoint%x) then
                         kMax = size(currZone%vertices)
-                        do k=0, kMax
-                            ! index = 
+                        do k=1, kMax
+                            if (currZone%vertices(j)%x == currZone%vertices(k)%x .and. &
+                                currZone%vertices(j)%y == currZone%vertices(k)%y) then
+                                index = k
+                            end if
                         end do
-                        ! index = findloc(currZone%vertices, currZone%vertices(j)%x)
-                        ! y = currZone%vertices(index)%y
-                        ! yPrime = currZone%conns(2, index)
+                        if (index == kMax) exit
+                        y = currZone%vertices(index)%y
+                        yPrime = currZone%vertices(index+1)%y
 
                         if (y /= yPrime) then
                             interceptCount = interceptCount+1
@@ -206,6 +211,7 @@ module zoneCalc
                     end if
                 end do
             end if
+            write(*,*) currZone%name
             if (mod(interceptCount, 2) /= 0) exit
         end do
 
