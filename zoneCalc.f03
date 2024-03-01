@@ -45,9 +45,9 @@ module zoneCalc
         deallocate(points)
 
         name = "silt loam"
-        allocate(points(6))
-        points%x = (/5.0, 6.5, 8.75, 9.375, 8.75, 8.0/)
-        points%y = (/0.0, 2.75, 2.75, 1.25, 1.25, 0.0/)
+        allocate(points(7))
+        points%x = (/5.0, 6.5, 6.75, 8.75, 9.375, 8.75, 8.0/)
+        points%y = (/0.0, 2.75, 2.75, 2.75, 1.25, 1.25, 0.0/)
         z5 = create_polygon(name, points)
 
         deallocate(points)
@@ -62,7 +62,7 @@ module zoneCalc
 
         name = "sandy clay loam"
         allocate(points(5))
-        points%x = (/1.0, 1.5, 3.75, 4.125, 3.75/)
+        points%x = (/1.0, 1.75, 3.75, 4.125, 3.75/)
         points%y = (/2.0, 3.5, 3.5, 2.75, 2.0/)
         z7 = create_polygon(name, points)
 
@@ -130,9 +130,7 @@ module zoneCalc
 
         xPrime = interceptPoint%x
         yPrime = interceptPoint%y
-        write(*,*) "Intercept again ", xPrime, yPrime
 
-        ! TODO -- Having trouble when stuff is close together
         do i = 1, size(zoneList)
             jMax = size(zoneList(i)%vertices)
             do j = 1, jMax
@@ -166,7 +164,7 @@ module zoneCalc
     integer function cast(interceptPoint)
         type(point), intent(inout) :: interceptPoint
         integer :: i, j, k, jMax, kMax, index, interceptCount
-        real :: y, yPrime
+        real :: y, yPrime, yMax, yMin
         integer, dimension(4) :: potentialZones = 0
         type(point) :: zoneIntercept
         type(polygon) :: currZone
@@ -202,9 +200,16 @@ module zoneCalc
                         if (index == kMax) exit
                         y = currZone%vertices(index)%y
                         yPrime = currZone%vertices(index+1)%y
+                        if (y > yPrime) then
+                            yMax = y
+                            yMin = yPrime
+                        else
+                            yMax = yPrime
+                            yMin = y
+                        end if
 
                         if (y /= yPrime) then
-                            interceptCount = interceptCount+1
+                            if (interceptPoint%y <= yMax .and. interceptPoint%y >= yMin) interceptCount = interceptCount+1
                         end if
                     end if
                 end do
