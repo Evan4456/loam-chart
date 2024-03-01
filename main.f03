@@ -18,10 +18,8 @@ program main
     clayTransform = clay / 10.0
     sandTransform = 2 * (10 - (sand / 10.0))
     interceptPoint = getIntercept(0.0, 1.0, (-clayTransform), (-2.0), (-1.0), sandTransform)
-    write(*,*) interceptPoint
+    write(*,*) "Intercept Point: ", interceptPoint
 
-    interceptPoint%x = 0.0
-    interceptPoint%y = 1.0
     hold = cast(interceptPoint)
 
     call cleanZones()

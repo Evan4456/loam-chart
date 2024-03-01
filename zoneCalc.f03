@@ -125,38 +125,36 @@ module zoneCalc
         type(point), intent(in) :: interceptPoint
         integer, dimension(4), intent(inout) :: potentialZones
         integer :: i, j, jMax, zoneCount
-        real :: a, b, c, cPrime, cMin, x, y
-        cMin = 30
+        real :: x, y, xPrime, yPrime, dist, minDist, potX, potY
+        minDist = 30.0
 
+        xPrime = interceptPoint%x
+        yPrime = interceptPoint%y
+        write(*,*) "Intercept again ", xPrime, yPrime
+
+        ! TODO -- Having trouble when stuff is close together
         do i = 1, size(zoneList)
             jMax = size(zoneList(i)%vertices)
             do j = 1, jMax
-            !FIX This math isn't getting closest point properly
-                a = interceptPoint%x * interceptPoint%x
-                b = interceptPoint%y * interceptPoint%y
-                cPrime = sqrt(a + b)
+                x = zoneList(i)%vertices(j)%x
+                y = zoneList(i)%vertices(j)%y
 
-                a = zoneList(i)%vertices(j)%x * zoneList(i)%vertices(j)%x
-                b = zoneList(i)%vertices(j)%y * zoneList(i)%vertices(j)%y
-                c = sqrt(a + b)
-                cPrime = abs(cPrime - c)
+                dist = abs(sqrt((xPrime-x)**2 + (yPrime-y)**2))
 
-                ! Does not handle if a point is equi-distant
-                if (cPrime <= cMin) then
-                    cMin = cPrime
-                    x = zoneList(i)%vertices(j)%x
-                    y = zoneList(i)%vertices(j)%y
-                    write(*,*) "Point: ", x, y
+                if (dist < minDist) then
+                    minDist = dist
+                    potX = x
+                    potY = y
+                    write(*,*) "Point: ", potX, potY
                 end if
             end do
         end do
-        write(*,*) "Cmin: ", + cMin
 
         zoneCount = 1
         do i = 1, size(zoneList)
             jMax = size(zoneList(i)%vertices)
             do j = 1, jMax
-                if (zoneList(i)%vertices(j)%x == x .and. zoneList(i)%vertices(j)%y == y) then
+                if (zoneList(i)%vertices(j)%x == potX .and. zoneList(i)%vertices(j)%y == potY) then
                     potentialZones(zoneCount) = i
                     zoneCount = zoneCount+1
                     write(*,*) "Test: ", zoneList(i)%vertices(j)
@@ -167,7 +165,7 @@ module zoneCalc
 
     integer function cast(interceptPoint)
         type(point), intent(inout) :: interceptPoint
-        integer :: i, j, k, jMax, kMax, index, connectingPoint, interceptCount
+        integer :: i, j, k, jMax, kMax, index, interceptCount
         real :: y, yPrime
         integer, dimension(4) :: potentialZones = 0
         type(point) :: zoneIntercept
