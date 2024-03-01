@@ -16,7 +16,7 @@ module polygons
         character(:), allocatable, intent(in) :: name
         type(point), dimension(:), allocatable, intent(in) :: vertices
 
-        integer :: t, b
+        integer :: t
         t = size(vertices, 1)
 
         create_polygon%name = name
