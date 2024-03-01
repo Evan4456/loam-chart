@@ -155,18 +155,16 @@ module zoneCalc
                 if (zoneList(i)%vertices(j)%x == potX .and. zoneList(i)%vertices(j)%y == potY) then
                     potentialZones(zoneCount) = i
                     zoneCount = zoneCount+1
-                    write(*,*) "Test: ", zoneList(i)%vertices(j)
                 end if
             end do
         end do
     end subroutine
 
-    integer function cast(interceptPoint)
+    type(polygon) function cast(interceptPoint)
         type(point), intent(inout) :: interceptPoint
         integer :: i, j, k, jMax, kMax, index, interceptCount
         real :: y, yPrime, yMax, yMin
         integer, dimension(4) :: potentialZones = 0
-        type(point) :: zoneIntercept
         type(polygon) :: currZone
 
         ! Get nearest point(s) and each zone with said point(s)
@@ -175,13 +173,9 @@ module zoneCalc
         
         ! If there is a line connection in which one x value is to the right of intercept-x
         ! then the horizontal line will cross over
-        ! -> Just count how many x values are to the right and that'll be how many times the 
-        ! horiz line crosses (half right)
-        ! -> Check that both y-values for the connection are different to confirm lines aren't parallel
-
-        ! Points now ordered clockwise
-        ! Check conns by iterating once through point list
-        ! Does not need to wrap as end->start is always parallel to ray
+        ! -> Counts how many x-values are to the right, then checks if range of associated y-values
+        !    includes intercept-y to confirm ray actually intercepts polygon edges
+        ! -> Does not need to wrap as end point -> start point is always parallel to ray
 
         do i=1, size(potentialZones)
             interceptCount = 0
@@ -218,9 +212,7 @@ module zoneCalc
             if (mod(interceptCount, 2) /= 0) exit
         end do
 
-        write(*,*) "should be right name-> ", currZone%name
-
-        cast = 0
+        cast = currZone
     end function cast
 
     subroutine cleanZones()
@@ -237,5 +229,4 @@ module zoneCalc
         deallocate(z11%vertices)
         deallocate(z12%vertices)
     end subroutine
-
 end module
