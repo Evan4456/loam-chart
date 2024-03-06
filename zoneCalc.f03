@@ -85,9 +85,9 @@ module zoneCalc
         deallocate(points)
 
         name = "sandy clay"
-        allocate(points(3))
-        points%x = (/1.75, 2.75, 3.75/) 
-        points%y = (/3.5, 5.5, 3.5/)
+        allocate(points(4))
+        points%x = (/1.75, 2.75, 3.5, 3.75/) 
+        points%y = (/3.5, 5.5, 4.0, 3.5/)
         z10 = create_polygon(name, points)
 
         deallocate(points)
@@ -115,10 +115,14 @@ module zoneCalc
         real, intent(in) :: a1, b1, c1, a2, b2, c2
         type(point) :: intercept
 
-        intercept%x = ((b1 * c2) - (b2 * c1)) / ((a1 * b2) - (a2 * b1))
-        intercept%y = ((a2 * c1) - (a1 * c2)) / ((a1 * b2) - (a2 * b1))
-
-        getIntercept = intercept
+        if (a1 == a2) then
+            getIntercept%x = (-1.0)
+            getIntercept%y = (-1.0)
+        else 
+            intercept%x = ((b1 * c2) - (b2 * c1)) / ((a1 * b2) - (a2 * b1))
+            intercept%y = ((a2 * c1) - (a1 * c2)) / ((a1 * b2) - (a2 * b1))
+            getIntercept = intercept
+        end if
     end function getIntercept
 
     subroutine getPotentialZones(interceptPoint, potentialZones)
@@ -163,8 +167,9 @@ module zoneCalc
     type(polygon) function cast(interceptPoint)
         type(point), intent(inout) :: interceptPoint
         integer :: i, j, k, jMax, kMax, index, interceptCount
-        real :: y, yPrime, yMax, yMin
+        real :: y, yPrime, x, xPrime, yMax, yMin, edgeSlope, c
         integer, dimension(4) :: potentialZones = 0
+        type(point) :: edgeIntercept
         type(polygon) :: currZone
 
         ! Get nearest point(s) and each zone with said point(s)
@@ -176,6 +181,11 @@ module zoneCalc
         ! -> Counts how many x-values are to the right, then checks if range of associated y-values
         !    includes intercept-y to confirm ray actually intercepts polygon edges
         ! -> Does not need to wrap as end point -> start point is always parallel to ray
+
+
+        !!FIX -- Needs to also confirm that intercept point of ray 
+        !        against polygon edge is to the right of interceptpoint
+        !        e.g. 15% clay, 70% sand gets messed up
 
         do i=1, size(potentialZones)
             interceptCount = 0
@@ -192,23 +202,41 @@ module zoneCalc
                             end if
                         end do
                         if (index == kMax) exit
+                        x = currZone%vertices(index)%x
                         y = currZone%vertices(index)%y
+                        xPrime = currZone%vertices(index+1)%x
                         yPrime = currZone%vertices(index+1)%y
-                        if (y > yPrime) then
-                            yMax = y
-                            yMin = yPrime
-                        else
-                            yMax = yPrime
-                            yMin = y
-                        end if
 
-                        if (y /= yPrime) then
-                            if (interceptPoint%y <= yMax .and. interceptPoint%y >= yMin) interceptCount = interceptCount+1
+                        edgeSlope = ((yPrime-y) / (xPrime-x))
+                        c = (-(edgeSlope * x)) + y ! 0 = ax - by + c | c = -ax + by
+                        edgeIntercept = getIntercept(0.0, 1.0, (-interceptPoint%y), edgeSlope, (1.0), c)
+
+                        write(*,*) "Edge: ", edgeIntercept
+
+                        if (edgeIntercept%x /= (-1.0) .and. edgeIntercept%y /= (-1.0)) then
+                            write(*,*) "Check"
+                            write(*,*) edgeIntercept
+                            if (edgeIntercept%x > interceptPoint%x) interceptCount = interceptCount+1
                         end if
+                        ! if (y > yPrime) then
+                        !     yMax = y
+                        !     yMin = yPrime
+                        ! else
+                        !     yMax = yPrime
+                        !     yMin = y
+                        ! end if
+
+                        ! if (y /= yPrime) then
+                        !     write(*,*) "YMAX: ", yMax, " YMIN: ", yMin
+                        !     if (interceptPoint%y <= yMax .and. interceptPoint%y >= yMin) interceptCount = interceptCount+1
+                        !     write(*,*) "count: ", interceptCount
+                        ! end if
                     end if
                 end do
             end if
-            write(*,*) currZone%name
+            write(*,*) edgeSlope, c
+            write(*,*) currZone%name, interceptCount
+            write(*,*) interceptCount
             if (mod(interceptCount, 2) /= 0) exit
         end do
 

@@ -11,6 +11,7 @@ program main
     write(*,*) "Clay (%) | Sand (%)"
     read(*,*) clay, sand
 
+    if (clay + sand > 100) call exit(1)
     call assignZones()
 
     ! Input clay and sand %
