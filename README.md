@@ -11,6 +11,7 @@ May end up using this in some other project but for now it's just an application
 ## Contents
 **Polygons Module**
 - Create polygon by providing name and array of point vertices
+  
 `Points defined as two real variables representing x and y`
 
 **ZoneCalc Module**
