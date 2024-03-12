@@ -29,7 +29,7 @@ program main
         write(*,*) "Loam"
     else if (( ( (silt >= 50).and.(silt < 80) ) .and. (clay < 12)).or.( ( (clay >= 12).and.(clay < 27) ) .and. ( silt >= 50) )) then
         write(*,*) "Silt Loam"
-    else if (((sand < 90).and.(sand > 70)).and.((clay < 20).and.(clay > 10)).and.(silt > 85)) then 
+    else if (((sand < 90).and.(sand >= 70)).and.(clay < 15).and.(silt < 30)) then 
         write(*,*) "Loamy Sand"
     else if ((sand >= 90).and.(clay <= 10)) then
         write(*,*) "Sand"
