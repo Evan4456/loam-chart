@@ -3,12 +3,9 @@ program main
     implicit none
 
     real :: clay, sand, silt
-    real :: T1, T2
 
     write(*,*) "Clay (%) | Sand (%) | Silt(%)"
     read(*,*) clay, sand, silt
-
-    call CPU_TIME(T1)
 
     if (clay + sand + silt > 100) then
         call exit(1)
@@ -41,9 +38,5 @@ program main
     else
         write(*,*) "Sandy Loam"
     end if
-
-    call CPU_TIME(T2)
-
-    write(*,*) T2 - T1
 
 end
