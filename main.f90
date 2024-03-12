@@ -1,27 +1,49 @@
 program main
-    use zoneCalc
-    use polygons
+
     implicit none
 
-    type(point) :: interceptPoint
-    type(polygon) :: correctZone
-    real :: clay, sand, clayTransform, sandTransform
+    real :: clay, sand, silt
+    real :: T1, T2
 
-    write(*,*) "Clay (%) | Sand (%)"
-    read(*,*) clay, sand
+    write(*,*) "Clay (%) | Sand (%) | Silt(%)"
+    read(*,*) clay, sand, silt
 
-    if (clay + sand > 100) call exit(1)
-    call assignZones()
+    call CPU_TIME(T1)
 
-    ! Input clay and sand %
-    ! -> Get coords of intercept
-    clayTransform = clay / 10.0
-    sandTransform = 2 * (10 - (sand / 10.0))
-    interceptPoint = getIntercept(0.0, 1.0, (-clayTransform), (-2.0), (-1.0), sandTransform)
-    write(*,*) "Intercept Point: ", interceptPoint
+    if (clay + sand + silt > 100) then
+        call exit(1)
+    end if
 
-    correctZone = cast(interceptPoint)
-    write(*,*) "Soil texture: ", correctZone%name
+    ! if statement instead of good code
 
-    call cleanZones()
+    if ((clay >= 40).and.(sand <= 45).and.(silt < 40)) then 
+        write(*,*) "Clay"
+    else if ((clay >= 35).and.(sand > 45)) then 
+        write(*,*) "Sandy Clay"
+    else if ((clay >= 40).and.(silt >= 40)) then 
+        write(*,*) "Silty Clay"
+    else if(((clay >= 27).and.(clay < 40)).and.((sand > 20).and.(sand <= 45))) then
+        write(*,*) "Clay Loam"
+    else if(((clay >= 20).and.(clay < 35)).and.(silt < 28).and.(sand > 45)) then
+        write(*,*) "Sandy Clay Loam"
+    else if(((clay >= 27).and.(clay < 40)).and.(sand  <= 20)) then
+        write(*,*) "Silty Clay Loam"
+    else if (((silt >= 28).and.(silt < 50)).and.((clay >= 7).and.(clay < 27)).and.(sand <=52)) then 
+        write(*,*) "Loam"
+    else if (( ( (silt >= 50).and.(silt < 80) ) .and. (clay < 12)).or.( ( (clay >= 12).and.(clay < 27) ) .and. ( silt >= 50) )) then
+        write(*,*) "Silt Loam"
+    else if (((sand < 90).and.(sand > 70)).and.((clay < 20).and.(clay > 10)).and.(silt > 85)) then 
+        write(*,*) "Loamy Sand"
+    else if ((sand >= 90).and.(clay <= 10)) then
+        write(*,*) "Sand"
+    else if ((silt >= 80).and.(clay < 12)) then 
+        write(*,*) "Silt"
+    else
+        write(*,*) "Sandy Loam"
+    end if
+
+    call CPU_TIME(T2)
+
+    write(*,*) T2 - T1
+
 end
