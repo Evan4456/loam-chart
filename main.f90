@@ -7,9 +7,7 @@ program main
     write(*,*) "Clay (%) | Sand (%) | Silt(%)"
     read(*,*) clay, sand, silt
 
-    if (clay + sand + silt > 100) then
-        call exit(1)
-    end if
+    if (clay + sand + silt > 100) call exit(1)
 
     ! if statement instead of good code
 
